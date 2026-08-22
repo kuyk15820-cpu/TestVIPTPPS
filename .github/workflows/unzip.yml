@@ -28,10 +28,8 @@ jobs:
       - name: show xcode version
         run: xcodebuild -version
 
-      - name: install ldid & periphery
-        run: |
-          brew install ldid
-          brew install peripheryapp/periphery/periphery
+      - name: install ldid
+        run: brew install ldid
 
       - name: sync swift files to xcodeproj
         run: |
@@ -87,7 +85,7 @@ jobs:
             existing_files = source_phase.files_references.compact.map(&:real_path).compact.map(&:to_s)
 
             Dir.glob('**/*.swift').each do |swift_file|
-              next if swift_file.start_with?('Pods/', 'Build/', '.build/', 'DerivedData/', 'swiftshield/')
+              next if swift_file.start_with?('Pods/', 'Build/', '.build/', 'DerivedData/')
               
               file_abs_path = File.expand_path(swift_file)
               
@@ -109,30 +107,6 @@ jobs:
 
             project.save
           "
-
-      - name: run periphery dead code scan
-        run: |
-          PROJECT_FILE=$(find . -maxdepth 1 -name "*.xcodeproj" | head -n 1)
-          if [ -n "$PROJECT_FILE" ]; then
-            periphery scan --project "$PROJECT_FILE" --schemes "c4" --targets "c4" --retain-public || true
-          fi
-
-      - name: install and run swiftshield
-        run: |
-          git clone https://github.com/rockbruno/swiftshield.git
-          cd swiftshield && swift build -c release
-          SWIFTSHIELD_BIN="$(pwd)/.build/release/swiftshield"
-          cd ..
-
-          PROJECT_PATH=$(find . -maxdepth 1 -name "*.xcodeproj" | head -n 1)
-          if [ -n "$PROJECT_PATH" ]; then
-            "$SWIFTSHIELD_BIN" obfuscate \
-              --project-file "$PROJECT_PATH" \
-              --scheme "c4" \
-              --ignore-targets "Drops,MBProgressHUD" \
-              --ignore-public \
-              --verbose
-          fi
 
       - name: build
         run: |
