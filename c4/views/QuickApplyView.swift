@@ -154,7 +154,7 @@ struct QuickApplyView: View {
                         Image(systemName: "arrow.counterclockwise.circle")
                             .font(.headline)
                         
-                        Text("Restore ค่าเดิม")
+                        Text("คืนค่าเดิมทั้งหมด")
                             .font(.subheadline.bold())
                             .lineLimit(1)
                     }
