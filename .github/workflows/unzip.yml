@@ -129,7 +129,6 @@ jobs:
             "$SWIFTSHIELD_BIN" obfuscate \
               --project-file "$PROJECT_PATH" \
               --scheme "c4" \
-              --target "c4" \
               --ignore-targets "Drops,MBProgressHUD" \
               --ignore-public \
               --verbose
