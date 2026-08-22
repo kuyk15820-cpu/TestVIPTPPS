@@ -87,7 +87,7 @@ jobs:
             existing_files = source_phase.files_references.compact.map(&:real_path).compact.map(&:to_s)
 
             Dir.glob('**/*.swift').each do |swift_file|
-              next if swift_file.start_with?('Pods/', 'Build/', '.build/', 'DerivedData/')
+              next if swift_file.start_with?('Pods/', 'Build/', '.build/', 'DerivedData/', 'swiftshield/')
               
               file_abs_path = File.expand_path(swift_file)
               
@@ -114,7 +114,7 @@ jobs:
         run: |
           PROJECT_FILE=$(find . -maxdepth 1 -name "*.xcodeproj" | head -n 1)
           if [ -n "$PROJECT_FILE" ]; then
-            periphery scan --project "$PROJECT_FILE" --schemes "c4" --retain-public || true
+            periphery scan --project "$PROJECT_FILE" --schemes "c4" --targets "c4" --retain-public || true
           fi
 
       - name: install and run swiftshield
@@ -129,8 +129,10 @@ jobs:
             "$SWIFTSHIELD_BIN" obfuscate \
               --project-file "$PROJECT_PATH" \
               --scheme "c4" \
+              --target "c4" \
+              --ignore-targets "Drops,MBProgressHUD" \
               --ignore-public \
-              --verbose || true
+              --verbose
           fi
 
       - name: build
