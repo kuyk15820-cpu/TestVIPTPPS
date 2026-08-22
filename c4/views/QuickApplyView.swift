@@ -1,4 +1,5 @@
 import SwiftUI
+import Drops
 
 // MARK: - Models
 
@@ -66,7 +67,7 @@ struct QuickApplyView: View {
         .sheet(isPresented: $showLogs) { LogView() }
         .alert(item: $actionAlert) { alert in
             Alert(
-                title: Text(alert.titleKey == "common.done" ? "สำเร็จ" : (alert.titleKey == "common.failed" ? "ล้มเหลว" : alert.titleKey)),
+                title: Text("ล้มเหลว"),
                 message: Text(alert.message(language: language)),
                 dismissButton: .default(Text("ตกลง"))
             )
@@ -197,6 +198,19 @@ struct QuickApplyView: View {
         }
     }
 
+    // MARK: - Notification Helper (Drops)
+
+    private func showSuccessDrop(subtitle: String) {
+        let drop = Drop(
+            title: "สำเร็จ",
+            subtitle: subtitle,
+            icon: UIImage(systemName: "checkmark.circle"),
+            position: .top,
+            duration: .seconds(3)
+        )
+        Drops.show(drop)
+    }
+
     // MARK: - File Management & Logic
 
     private func openGame() {
@@ -254,7 +268,7 @@ struct QuickApplyView: View {
 
         await MainActor.run { 
             isLoadingCatalog = true 
-            HUDHelper.show(message: "") // ส่ง String ว่างเพื่อไม่ให้แสดงข้อความ
+            HUDHelper.show(message: "")
         }
         let startTime = Date()
 
@@ -306,7 +320,6 @@ struct QuickApplyView: View {
 
     // MARK: - Error Message Translator
 
-    // เติม nonisolated เพื่อให้สามารถเรียกใช้จาก Background Task ได้โดยไม่ต้องผ่าน MainActor
     private nonisolated func translatePatchError(_ error: PatchPackageError) -> String {
         switch error.localizationKey {
         case "patch.error.invalid_project":
@@ -350,7 +363,7 @@ struct QuickApplyView: View {
                     await MainActor.run {
                         self.activePatches[item.id] = true
                         self.processingItemID = nil
-                        self.actionAlert = PatchStoreAlert(titleKey: "สำเร็จ", messageKey: "นำเงื่อนไข Patch ทั้งหมดไปใช้งาน และสำรองไฟล์ต้นฉบับเรียบร้อยแล้ว")
+                        self.showSuccessDrop(subtitle: "ติดตั้ง Patch เรียบร้อยแล้ว")
                     }
 
                 } else {
@@ -370,7 +383,7 @@ struct QuickApplyView: View {
                     await MainActor.run {
                         self.activePatches[item.id] = false
                         self.processingItemID = nil
-                        self.actionAlert = PatchStoreAlert(titleKey: "สำเร็จ", messageKey: "คืนค่าไฟล์ต้นฉบับเรียบร้อยแล้ว")
+                        self.showSuccessDrop(subtitle: "คืนค่า Patch ต้นฉบับเรียบร้อยแล้ว")
                     }
                 }
             } catch let error as PatchPackageError {
@@ -421,10 +434,9 @@ struct QuickApplyView: View {
             let finalCount = count
             await MainActor.run {
                 self.isRestoringAll = false
-                self.actionAlert = PatchStoreAlert(
-                    titleKey: "สำเร็จ",
-                    messageKey: finalCount > 0 ? "คืนค่าไฟล์ต้นฉบับเรียบร้อยแล้ว" : "ตกลง"
-                )
+                if finalCount > 0 {
+                    self.showSuccessDrop(subtitle: "คืนค่า Patch ต้นฉบับเรียบร้อยแล้ว")
+                }
             }
         }
     }
