@@ -18,7 +18,7 @@ SCHEME_NAME="$TARGET_NAME"
 echo "Auto-generating scheme for Target: $SCHEME_NAME..."
 xcodebuild -project "$PROJECT_FILE" -scheme "$SCHEME_NAME" -manageAutomaticSchemes >/dev/null 2>&1 || true
 
-# 1. สั่ง Archive
+# 1. สั่ง Archive พร้อม Security & Strip Flags
 xcodebuild \
   -project "$PROJECT_FILE" \
   -scheme "$SCHEME_NAME" \
@@ -29,9 +29,15 @@ xcodebuild \
   CODE_SIGN_IDENTITY="" \
   CODE_SIGNING_REQUIRED=NO \
   CODE_SIGNING_ALLOWED=NO \
-  AD_HOC_CODE_SIGNING_ALLOWED=YES
+  AD_HOC_CODE_SIGNING_ALLOWED=YES \
+  SWIFT_COMPILATION_MODE=wholemodule \
+  STRIP_INSTALLED_PRODUCT=YES \
+  COPY_PHASE_STRIP=YES \
+  STRIP_STYLE=all \
+  SWIFT_SERIALIZE_DEBUGGING_OPTIONS=NO \
+  DEBUG_INFORMATION_FORMAT=dsym-with-dSYM
 
-# 2. ดึงไฟล์ .app อัตโนมัติ (ไม่ว่า Target จะชื่อ 3105 หรือชื่ออื่น)
+# 2. ดึงไฟล์ .app อัตโนมัติ
 APP_PATH=$(find "$PWD/build/$PROJECT_NAME.xcarchive/Products/Applications" -maxdepth 1 -name "*.app" | head -n 1)
 
 if [ -z "$APP_PATH" ] || [ ! -d "$APP_PATH" ]; then
